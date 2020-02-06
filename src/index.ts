@@ -19,7 +19,7 @@ export interface IVisitor {
   [visitorRegStr: string]: IVisitorFunc;
 }
 
-export default function(dir: string, visitor: IVisitor) {
+export default async function(dir: string, visitor: IVisitor) {
   let rules = [];
 
   for (let visitorKey in visitor) {
@@ -50,6 +50,7 @@ export default function(dir: string, visitor: IVisitor) {
       }
     })
     .on('end', () => {});
+  return ;
 }
 
 interface IContext extends ParsedPath {
