@@ -19,9 +19,8 @@ export interface IVisitor {
   [visitorRegStr: string]: IVisitorFunc;
 }
 
-export default async function(dir: string, visitor: IVisitor) {
+export default async function(dir: string, visitor: IVisitor):Promise<Promise<any>[]> {
   let rules = [];
-
   for (let visitorKey in visitor) {
     rules.push({
       rule: new RegExp(visitorKey),
@@ -29,28 +28,38 @@ export default async function(dir: string, visitor: IVisitor) {
     });
   }
 
-  klaw(dir)
-    .on('data', async item => {
-      if (item.stats.isFile() || item.stats.isDirectory()) {
-        let content;
-        if (item.stats.isFile()) {
-          content = (await fse.readFile(item.path)).toString();
-        }
+  return new Promise((resolve,reject)=>{
 
-        rules.forEach(ruleItem => {
-          if (ruleItem.rule.test(item.path)) {
-            let context = {
-              ...parse(item.path),
-              absPath: item.path,
-              content,
-            } as IContext;
-            ruleItem.cal(context);
+    let methodReturn =[];
+    klaw(dir)
+      .on('data',  item => {
+          if (item.stats.isFile() || item.stats.isDirectory()) {
+            rules.forEach(ruleItem => {
+              if (ruleItem.rule.test(item.path)) {
+                methodReturn.push(new Promise(async (resolve,reject)=>{
+                  let content;
+                  if (item.stats.isFile()) {
+                    content = (await fse.readFile(item.path)).toString();
+                  }
+                  let context = {
+                    ...parse(item.path),
+                    absPath: item.path,
+                    content,
+                  } as IContext;
+                  resolve(ruleItem.cal(context));
+                }))
+              }
+            });
           }
-        });
-      }
-    })
-    .on('end', () => {});
-  return ;
+      })
+      .on('error',(err, item) => {
+        reject({err,item});
+      })
+      .on('end', () => {
+        resolve(methodReturn);
+      });
+  })
+
 }
 
 interface IContext extends ParsedPath {
