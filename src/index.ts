@@ -10,6 +10,7 @@
 import * as klaw from 'klaw';
 import * as fse from 'fs-extra';
 import {parse, ParsedPath} from 'path';
+import K = require("klaw");
 
 export interface IVisitorFunc {
   (context: IContext): void;
@@ -19,7 +20,7 @@ export interface IVisitor {
   [visitorRegStr: string]: IVisitorFunc;
 }
 
-export default async function(dir: string, visitor: IVisitor):Promise<Promise<any>[]> {
+export default async function(dir: string, visitor: IVisitor,options?:K.Options):Promise<Promise<any>[]> {
   let rules = [];
   for (let visitorKey in visitor) {
     rules.push({
@@ -31,7 +32,7 @@ export default async function(dir: string, visitor: IVisitor):Promise<Promise<an
   return new Promise((resolve,reject)=>{
 
     let methodReturn =[];
-    klaw(dir)
+    klaw(dir,options)
       .on('data',  item => {
           if (item.stats.isFile() || item.stats.isDirectory()) {
             rules.forEach(ruleItem => {
