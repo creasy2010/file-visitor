@@ -30,10 +30,10 @@ export default async function(dir: string, visitor: IVisitor,options?:K.Options)
   }
 
   return new Promise((resolve,reject)=>{
-
     let methodReturn =[];
     klaw(dir,options)
       .on('data',  item => {
+        try {
           if (item.stats.isFile() || item.stats.isDirectory()) {
             rules.forEach(ruleItem => {
               if (ruleItem.rule.test(item.path)) {
@@ -52,6 +52,9 @@ export default async function(dir: string, visitor: IVisitor,options?:K.Options)
               }
             });
           }
+        } catch (err) {
+          console.warn(err);
+        }
       })
       .on('error',(err, item) => {
         reject({err,item});
