@@ -1,6 +1,6 @@
 {
   "name": "file-visitor",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "file-visitor",
   "main": "./dist/index.js",
   "typings": "./declarations",
